@@ -1,7 +1,9 @@
+'use strict';
 const dotenv = require("dotenv");
 dotenv.config();
 const express = require("express");
 const cors = require("cors");
+var request = require('request');
 
 const app = express();
 app.use(cors());
@@ -13,6 +15,8 @@ app.get("/", (req, res) => {
   res.send("Stock server is up and running");
 });
 
+
+// get data from polygon.io api
 app.get("/api/stocks/:stockId", async (req, res) => {
   console.log({
     requestParams: req.params,
@@ -25,6 +29,23 @@ app.get("/api/stocks/:stockId", async (req, res) => {
   );
   const data = await result.json();
   res.json(data.results[0].l);
+});
+
+//using alpha vantage stock 
+app.get("/api/alpha/:stockId", async (req, res) => {
+  console.log({
+    requestParams: req.params,
+    requestQuery: req.query,
+  });
+  const stockId = req.params.stockId;
+  console.log(stockId);
+  const result = await fetch(
+    `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${stockId}&apikey=${process.env.ALPHA_VANTAGE_APIKEY}`
+  );
+
+  const data = await result.json();
+  const price = data["Global Quote"]["05. price"];
+  res.json(price);
 });
 
 const start = async () => {
