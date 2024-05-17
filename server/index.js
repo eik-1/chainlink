@@ -43,7 +43,8 @@ app.get("/api/alpha/:stockId", async (req, res) => {
   );
 
   const data = await result.json();
-  const price = data["Global Quote"]["05. price"];
+  const priceString = data["Global Quote"]["05. price"];
+  const price = parseFloat(priceString);
   res.json(price);
 });
 
