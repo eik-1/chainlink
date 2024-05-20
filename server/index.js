@@ -27,6 +27,7 @@ app.get("/api/stocks/:stockId", async (req, res) => {
     `https://api.polygon.io/v2/aggs/ticker/${stockId}/range/1/day/2023-01-09/2023-01-09?apiKey=${apiKey}`
   );
   const data = await result.json();
+  
   res.json(data.results[0].l);
 });
 
@@ -46,6 +47,7 @@ app.get("/api/alpha/:stockId", async (req, res) => {
   const priceString = data["Global Quote"]["05. price"];
   const price = parseFloat(priceString);
   console.log(price)
+  console.log(typeof price)
   res.json(price);
 });
 

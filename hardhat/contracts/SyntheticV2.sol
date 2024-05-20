@@ -43,7 +43,8 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
         "throw Error('Request failed');"
         "}"
         "const { data } = apiResponse;"
-        "return Functions.encodeString(data);";
+        "const dataMultiplied = data * 100;"
+        "return Functions.encodeUint256(dataMultiplied);";
 
     //Callback gas limit
     uint32 gasLimit = 300000;
@@ -52,7 +53,7 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
         0x66756e2d706f6c79676f6e2d616d6f792d310000000000000000000000000000;
 
     // State variable to store the returned character information
-    string public price;
+    uint256 public price;
 
     mapping(address => uint256) public depositedAmount;
     mapping(address => MintableToken) public syntheticTokens;
@@ -111,18 +112,25 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
         if (s_lastRequestId != requestId) {
             revert UnexpectedRequestID(requestId); // Check if request IDs match
         }
-        // Update the contract's state variables with the response and any errors
+
         s_lastResponse = response;
-        price = string(response);
+        price = convertBytesToUint(response);
         s_lastError = err;
 
         // Emit an event to log the response
-        emit Response(requestId, price, s_lastResponse, s_lastError);
+        // emit Response(requestId, price, s_lastResponse, s_lastError);
+    }
+
+        function convertBytesToUint(bytes memory response) public pure returns (uint256) {
+        (uint256 newprice) = abi.decode(response, (uint256));
+        return newprice;
     }
 
     function bytesToUint(bytes32 _bytes) internal pure returns (uint256) {
         return uint256(_bytes);
     }
+
+    uint256 public depositValue;
 
     function depositAndMint(
         // uint256 amountToMint,
@@ -140,6 +148,7 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
         require(msg.value > 0, "Insufficient deposit amount");
         depositedAmount[msg.sender] += msg.value;
         uint256 depositValueInUsd = (uint256(ethPriceInUsd) * msg.value) / 1e18;
+        depositValue = depositValueInUsd;
         // Calculate the maximum mintable token value based on the over-collateralization ratio
         uint256 maxMintableTokenValueInUsd = depositValueInUsd /
             OVER_COLLATERALIZATION_RATIO;
