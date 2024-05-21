@@ -7,7 +7,7 @@ import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/l
 import {MintableToken} from "./MintableToken.sol";
 import {OracleLib, AggregatorV3Interface} from "./OracleLib.sol";
 
-contract Synthetic is FunctionsClient, ConfirmedOwner {
+contract SyntheticV2 is FunctionsClient, ConfirmedOwner {
     using FunctionsRequest for FunctionsRequest.Request;
     AggregatorV3Interface internal dataFeed;
 
@@ -86,7 +86,7 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
 
     function sendRequest(string[] calldata args)
         internal
-        onlyOwner
+        // onlyOwner
         returns (bytes32 requestId)
     {
         FunctionsRequest.Request memory req;
@@ -180,4 +180,9 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
     //     depositedAmount[msg.sender] -= redeemAmount;
     //     payable(msg.sender).transfer(redeemAmount);
     // }
+
+        // for testing to remove funds
+    function withdraw() public {
+        payable(msg.sender).transfer(address(this).balance);
+    }
 }

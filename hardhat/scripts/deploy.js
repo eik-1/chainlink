@@ -8,13 +8,19 @@ const hre = require("hardhat");
 
 async function main() {
 
-
-  const Fsd = await hre.ethers.getContractFactory("FetchStockData");
-  const fsd = await Fsd.deploy();
+  const args = [200];
+  const Fsd = await hre.ethers.getContractFactory("SyntheticV2");
+  const fsd = await Fsd.deploy(200);
 
   console.log(
     `FetchStockData deployed to ${fsd.target}`
   );
+  console.log(`Verifying contract on Etherscan...`);
+
+  await run(`verify:verify`, {
+    address: fsd.target,
+    constructorArguments: ["200"],
+  });
 }
 
 // We recommend this pattern to be able to use async/await everywhere
