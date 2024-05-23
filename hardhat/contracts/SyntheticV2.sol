@@ -7,7 +7,7 @@ import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/l
 import {MintableToken} from "./MintableToken.sol";
 import {OracleLib, AggregatorV3Interface} from "./OracleLib.sol";
 
-contract SyntheticV2 is FunctionsClient, ConfirmedOwner {
+contract Synthetic is FunctionsClient, ConfirmedOwner {
     using FunctionsRequest for FunctionsRequest.Request;
     AggregatorV3Interface internal dataFeed;
 
@@ -16,7 +16,21 @@ contract SyntheticV2 is FunctionsClient, ConfirmedOwner {
     bytes public s_lastResponse;
     bytes public s_lastError;
     uint64 subscriptionId;
-    address public fetchData = address(this);
+    // address public fetchData = address(this);
+    uint256 public stockPrice;
+    // uint256 constant OVER_COLLATERALIZATION_RATIO = 2; // 200% over-collateral
+    uint256 maxMintableTokenValueInUsd;
+    // bool for request fulfillment
+    bool public isFullfilled;
+
+    string public newStockName;
+    string public newStockSymbol;
+
+    //test vars
+    uint256 public depositValue;
+    uint256 public maxMintableTokenValueInUsdTest;
+    uint256 public NoOFTokensToMint;
+    int256 public ethPriceInUsd;
     // Custom error type
     error UnexpectedRequestID(bytes32 requestId);
 
@@ -31,7 +45,8 @@ contract SyntheticV2 is FunctionsClient, ConfirmedOwner {
     // event TokensMinted(address indexed minter, uint256 totalMintedTokens);
     event TokensMinted(address indexed user, uint256 amount, address token);
 
-    address router = 0xC22a79eBA640940ABB6dF0f7982cc119578E11De;
+    // address router = 0xC22a79eBA640940ABB6dF0f7982cc119578E11De; //amoy network
+    address router = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0; //sepolia network
 
     // JavaScript source code
     string source =
@@ -50,17 +65,15 @@ contract SyntheticV2 is FunctionsClient, ConfirmedOwner {
     uint32 gasLimit = 300000;
 
     bytes32 donID =
-        0x66756e2d706f6c79676f6e2d616d6f792d310000000000000000000000000000;
-
-    // State variable to store the returned character information
-    uint256 public price;
+        // 0x66756e2d706f6c79676f6e2d616d6f792d310000000000000000000000000000;// amoy network
+        0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000;// sepolia network
 
     mapping(address => uint256) public depositedAmount;
     mapping(address => MintableToken) public syntheticTokens;
     mapping(address => address[]) public walletToContractAddresses;
+
     // uint256 public constant DEPOSIT_AMOUNT = 1 ether;
-    uint256 public lastStockPrice;
-    uint256 constant OVER_COLLATERALIZATION_RATIO = 2; // 200% over-collateral
+    // uint256 public lastStockPrice;
 
     constructor(uint64 _subId)
         FunctionsClient(router)
@@ -68,7 +81,9 @@ contract SyntheticV2 is FunctionsClient, ConfirmedOwner {
     {
         subscriptionId = _subId;
         dataFeed = AggregatorV3Interface(
-            0xF0d50568e3A7e8259E16663972b11910F89BD8e7
+            // 0xF0d50568e3A7e8259E16663972b11910F89BD8e7// eth/usd amoy network
+            // 0x001382149eBa3441043c1c66972b4772963f5D43// matic/usd amoy network
+            0x694AA1769357215DE4FAC081bf1f309aDC325306 // sepolia network
         );
     }
 
@@ -86,14 +101,14 @@ contract SyntheticV2 is FunctionsClient, ConfirmedOwner {
 
     function sendRequest(string[] calldata args)
         internal
-        // onlyOwner
-        returns (bytes32 requestId)
+        returns (
+            // onlyOwner
+            bytes32 requestId
+        )
     {
         FunctionsRequest.Request memory req;
-        req.initializeRequestForInlineJavaScript(source); // Initialize the request with JS code
-        if (args.length > 0) req.setArgs(args); // Set the arguments for the request
-
-        // Send the request and store the request ID
+        req.initializeRequestForInlineJavaScript(source);
+        if (args.length > 0) req.setArgs(args);
         s_lastRequestId = _sendRequest(
             req.encodeCBOR(),
             subscriptionId,
@@ -110,51 +125,51 @@ contract SyntheticV2 is FunctionsClient, ConfirmedOwner {
         bytes memory err
     ) internal override {
         if (s_lastRequestId != requestId) {
-            revert UnexpectedRequestID(requestId); // Check if request IDs match
+            revert UnexpectedRequestID(requestId);
         }
 
         s_lastResponse = response;
-        price = convertBytesToUint(response);
+        uint256 newPrice = convertBytesToUint(response);
+        stockPrice = newPrice * 1e16;
         s_lastError = err;
-
-        // Emit an event to log the response
-        // emit Response(requestId, price, s_lastResponse, s_lastError);
+        stockTokensToMint(ethPriceInUsd, stockPrice);
+        isFullfilled = true;
+        // **************************************************************************
+        // if you mint here there is a gas error from chainlink but cannot increase gas from chainlink 3000000 is max
+        // **************************************************************************
+        // mintStockTokens(newStockName, newStockSymbol, NoOFTokensToMint);
+        
     }
 
-        function convertBytesToUint(bytes memory response) public pure returns (uint256) {
-        (uint256 newprice) = abi.decode(response, (uint256));
-        return newprice;
-    }
-
-    function bytesToUint(bytes32 _bytes) internal pure returns (uint256) {
-        return uint256(_bytes);
-    }
-
-    uint256 public depositValue;
 
     function depositAndMint(
-        // uint256 amountToMint,
-        string memory _name,
-        string memory _symbol,
+        string memory _name, // name of the stock
+        string memory _symbol, // symbol of the stock
         string[] calldata _stock
     ) external payable {
-        //fetch stock price
-        bytes32 stockPriceBytes32 = sendRequest(_stock);
-        uint256 stockPrice = bytesToUint(stockPriceBytes32);
-        lastStockPrice = stockPrice;
-
-        //fetch the price of eth in usd???? using chainlink price feeds
-        int256 ethPriceInUsd = getChainlinkDataFeedLatestAnswer();
         require(msg.value > 0, "Insufficient deposit amount");
         depositedAmount[msg.sender] += msg.value;
+        newStockName = _name;
+        newStockSymbol = _symbol;
+        ethPriceInUsd = getChainlinkDataFeedLatestAnswer() * 1e10;
         uint256 depositValueInUsd = (uint256(ethPriceInUsd) * msg.value) / 1e18;
         depositValue = depositValueInUsd;
-        // Calculate the maximum mintable token value based on the over-collateralization ratio
-        uint256 maxMintableTokenValueInUsd = depositValueInUsd /
-            OVER_COLLATERALIZATION_RATIO;
-        // Calculate the number of tokens to mint based on the stock price
-        uint256 tokensToMint = maxMintableTokenValueInUsd / uint256(stockPrice);
+        sendRequest(_stock);
+        if(isFullfilled){
+            mintStockTokens(newStockName, newStockSymbol, NoOFTokensToMint);
+        }
+        // **************************************************************************
+        // if you mint here there are 0 tokens issued as the sendRequest has not been fulfilled 
+        // **************************************************************************
+        // mintStockTokens(newStockName, newStockSymbol, NoOFTokensToMint);
+        
+    }
 
+    function mintStockTokens(
+        string memory _name,
+        string memory _symbol,
+        uint256 tokensToMint
+    ) internal {
         MintableToken newToken = new MintableToken(
             _name,
             _symbol,
@@ -168,7 +183,9 @@ contract SyntheticV2 is FunctionsClient, ConfirmedOwner {
         //emit an event for total minted tokens to address
         emit TokensMinted(msg.sender, tokensToMint, address(newToken));
     }
-
+//  ***************************************************************
+// Still to solve the redeemAndBurn function 
+//  ***************************************************************
     // function redeemAndBurn(uint256 amountToBurn) external {
     //     require(
     //         syntheticTokens[msg.sender].balanceOf(msg.sender) >= amountToBurn,
@@ -181,7 +198,26 @@ contract SyntheticV2 is FunctionsClient, ConfirmedOwner {
     //     payable(msg.sender).transfer(redeemAmount);
     // }
 
-        // for testing to remove funds
+
+    function convertBytesToUint(bytes memory response)
+        public
+        pure
+        returns (uint256)
+    {
+        uint256 newprice = abi.decode(response, (uint256));
+        // stockPrice = newprice;
+        return newprice;
+    }
+
+    function bytesToUint(bytes32 _bytes) internal pure returns (uint256) {
+        return uint256(_bytes);
+    }
+
+    function stockTokensToMint(int256 _ethPrice, uint256 _stockPrice) internal {
+       NoOFTokensToMint = (uint256(_ethPrice) / _stockPrice)/ 2;
+       mintStockTokens(newStockName, newStockSymbol, NoOFTokensToMint);
+    }
+    // for testing to remove funds
     function withdraw() public {
         payable(msg.sender).transfer(address(this).balance);
     }
