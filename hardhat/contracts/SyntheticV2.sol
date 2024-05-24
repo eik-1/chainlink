@@ -11,18 +11,12 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
     using FunctionsRequest for FunctionsRequest.Request;
     AggregatorV3Interface internal dataFeed;
 
-    // State variables to store the last request ID, response, and error
     bytes32 public s_lastRequestId;
     bytes public s_lastResponse;
     bytes public s_lastError;
     uint64 subscriptionId;
-    // address public fetchData = address(this);
     uint256 public stockPrice;
-    // uint256 constant OVER_COLLATERALIZATION_RATIO = 2; // 200% over-collateral
     uint256 maxMintableTokenValueInUsd;
-    // bool for request fulfillment
-    bool public isFullfilled;
-
     string public newStockName;
     string public newStockSymbol;
 
@@ -42,8 +36,8 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
         bytes err
     );
 
-    // event TokensMinted(address indexed minter, uint256 totalMintedTokens);
     event TokensMinted(address indexed user, uint256 amount, address token);
+    event RequestFulfilled(address user, string stockName, string stockSymbol, uint256 tokensToMint);
 
     // address router = 0xC22a79eBA640940ABB6dF0f7982cc119578E11De; //amoy network
     address router = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0; //sepolia network
@@ -72,8 +66,6 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
     mapping(address => MintableToken) public syntheticTokens;
     mapping(address => address[]) public walletToContractAddresses;
 
-    // uint256 public constant DEPOSIT_AMOUNT = 1 ether;
-    // uint256 public lastStockPrice;
 
     constructor(uint64 _subId)
         FunctionsClient(router)
@@ -133,11 +125,11 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
         stockPrice = newPrice * 1e16;
         s_lastError = err;
         stockTokensToMint(ethPriceInUsd, stockPrice);
-        isFullfilled = true;
+        emit RequestFulfilled(msg.sender, newStockName, newStockSymbol, NoOFTokensToMint);
         // **************************************************************************
         // if you mint here there is a gas error from chainlink but cannot increase gas from chainlink 3000000 is max
         // **************************************************************************
-        // mintStockTokens(newStockName, newStockSymbol, NoOFTokensToMint);
+        mintStockTokens(newStockName, newStockSymbol, NoOFTokensToMint);
         
     }
 
@@ -155,9 +147,7 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
         uint256 depositValueInUsd = (uint256(ethPriceInUsd) * msg.value) / 1e18;
         depositValue = depositValueInUsd;
         sendRequest(_stock);
-        if(isFullfilled){
-            mintStockTokens(newStockName, newStockSymbol, NoOFTokensToMint);
-        }
+
         // **************************************************************************
         // if you mint here there are 0 tokens issued as the sendRequest has not been fulfilled 
         // **************************************************************************
@@ -214,7 +204,7 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
     }
 
     function stockTokensToMint(int256 _ethPrice, uint256 _stockPrice) internal {
-       NoOFTokensToMint = (uint256(_ethPrice) / _stockPrice)/ 2;
+       NoOFTokensToMint = (uint256(_ethPrice) / _stockPrice) / 2;
        mintStockTokens(newStockName, newStockSymbol, NoOFTokensToMint);
     }
     // for testing to remove funds

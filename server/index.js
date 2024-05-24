@@ -9,6 +9,10 @@ app.use(cors());
 app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const apiKey = process.env.POLYGON_AGGREGATES_APIKEY;
+const wssURL = process.env.WSS_URL;
+const contractAddress = process.env.CONTRACT_ADDRESS;
+
+
 
 app.get("/", (req, res) => {
   res.send("Stock server is up and running");
