@@ -125,11 +125,11 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
         stockPrice = newPrice * 1e16;
         s_lastError = err;
         stockTokensToMint(ethPriceInUsd, stockPrice);
-        emit RequestFulfilled(msg.sender, newStockName, newStockSymbol, NoOFTokensToMint);
+        // emit RequestFulfilled(msg.sender, newStockName, newStockSymbol, NoOFTokensToMint);
         // **************************************************************************
         // if you mint here there is a gas error from chainlink but cannot increase gas from chainlink 3000000 is max
         // **************************************************************************
-        mintStockTokens(newStockName, newStockSymbol, NoOFTokensToMint);
+        // mintStockTokens(newStockName, newStockSymbol, NoOFTokensToMint);
         
     }
 
