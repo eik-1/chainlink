@@ -128,6 +128,7 @@ contract Synthetic is FunctionsClient, ConfirmedOwner {
         // emit RequestFulfilled(msg.sender, newStockName, newStockSymbol, NoOFTokensToMint);
         // **************************************************************************
         // if you mint here there is a gas error from chainlink but cannot increase gas from chainlink 3000000 is max
+        //or could be due to the msg.sender is not being sent to the mintStockToken function
         // **************************************************************************
         // mintStockTokens(newStockName, newStockSymbol, NoOFTokensToMint);
         
