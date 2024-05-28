@@ -8,7 +8,7 @@ import {MintableToken} from "./MintableToken.sol";
 import {OracleLib, AggregatorV3Interface} from "./OracleLib.sol";
 import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 
-contract Synthetic is
+contract SyntheticV4 is
     FunctionsClient,
     ConfirmedOwner,
     AutomationCompatibleInterface

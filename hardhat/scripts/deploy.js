@@ -9,8 +9,8 @@ const hre = require("hardhat");
 async function main() {
 
   const args = [200];
-  const Fsd = await hre.ethers.getContractFactory("SyntheticV2");
-  const fsd = await Fsd.deploy(200);
+  const Fsd = await hre.ethers.getContractFactory("SyntheticV4");
+  const fsd = await Fsd.deploy(2795);
 
   console.log(
     `FetchStockData deployed to ${fsd.target}`
@@ -19,7 +19,7 @@ async function main() {
 
   await run(`verify:verify`, {
     address: fsd.target,
-    constructorArguments: ["200"],
+    constructorArguments: ["2795"],
   });
 }
 

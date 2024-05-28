@@ -22,10 +22,15 @@ module.exports = {
       accounts: [process.env.PRIVATE_KEY],
       gasPrice: "auto",
     },
+    sepolia: {
+      url: process.env.SEPOLIA_RPC,
+      accounts: [process.env.PRIVATE_KEY],
+    },
   },
   etherscan: {
     apiKey: {
       polygonAmoy: process.env.OKLINK_AMOY_API,
+      sepolia: process.env.ETHERSCAN_API_KEY, 
     },
     customChains: [
       {

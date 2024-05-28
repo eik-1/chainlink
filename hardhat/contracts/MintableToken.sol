@@ -4,8 +4,8 @@ pragma solidity 0.8.25;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract MintableToken is ERC20 {
-    constructor(string memory name, string memory symbol, uint256 initialSupply) ERC20(name, symbol) {
-        _mint(msg.sender, initialSupply);
+    constructor(string memory name, string memory symbol, uint256 initialSupply, address _userAddress) ERC20(name, symbol) {
+        _mint(_userAddress, initialSupply);
     }
 
     function mint(address to, uint256 amount) public {
