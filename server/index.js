@@ -9,28 +9,28 @@ app.use(cors());
 app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const apiKey = process.env.POLYGON_AGGREGATES_APIKEY;
-const wssURL = process.env.WSS_URL;
+// const wssURL = process.env.WSS_URL;
 const contractAddress = process.env.CONTRACT_ADDRESS;
 const abi = require("./abi");
 const httpProvider = new ethers.providers.JsonRpcProvider(
   "https://polygon-amoy.g.alchemy.com/v2/7nTRB0-k8rsp__KYAq12LYq5KWG16SZ0"
 )
 // const signer = new ethers.Wallet(process.env.PRIVATE_KEY, httpProvider
-const provider = new ethers.providers.WebSocketProvider(wssURL);
-const contract = new ethers.Contract(contractAddress, abi, provider);
+// const provider = new ethers.providers.WebSocketProvider(wssURL);
+// const contract = new ethers.Contract(contractAddress, abi, provider);
 
 
-contract.on("Response",(requestId, stockTokensToMint, response, err, event) => {
-  // console.log(requestId, stockTokensToMint, response, err, event);
-  let data = {
-    // requestId: requestId,
-    stockTokensToMint: parseInt(stockTokensToMint, 10),
-    // response: response,
-    // err: err,
-    // event: event
-  }
-  console.log(data)
-})
+// contract.on("Response",(requestId, stockTokensToMint, response, err, event) => {
+//   // console.log(requestId, stockTokensToMint, response, err, event);
+//   let data = {
+//     // requestId: requestId,
+//     stockTokensToMint: parseInt(stockTokensToMint, 10),
+//     // response: response,
+//     // err: err,
+//     // event: event
+//   }
+//   console.log(data)
+// })
 
 app.get("/", (req, res) => {
   res.send("Stock server is up and running");

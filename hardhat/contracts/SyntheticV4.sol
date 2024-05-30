@@ -65,8 +65,8 @@ contract SyntheticV4 is
         uint256 tokensToMint
     );
 
-    address router = 0xC22a79eBA640940ABB6dF0f7982cc119578E11De; //amoy network
-    // address router = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0; //sepolia network
+    // address router = 0xC22a79eBA640940ABB6dF0f7982cc119578E11De; //amoy network
+    address router = 0xb83E47C2bC239B3bf370bc41e1459A34b41238D0; //sepolia network
     // address router = 0x234a5fb5Bd614a7AA2FfAB244D603abFA0Ac5C5C; // arb-sepolia
 
     // JavaScript source code
@@ -86,8 +86,8 @@ contract SyntheticV4 is
     uint32 gasLimit = 300000;
 
     bytes32 donID =
-        0x66756e2d706f6c79676f6e2d616d6f792d310000000000000000000000000000; // amoy network
-    // 0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000;// sepolia network
+        // 0x66756e2d706f6c79676f6e2d616d6f792d310000000000000000000000000000; // amoy network
+    0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000;// sepolia network
     // 0x66756e2d617262697472756d2d7365706f6c69612d3100000000000000000000; //arb-sepolia
 
     mapping(address => uint256) public depositedAmount;
@@ -101,8 +101,8 @@ contract SyntheticV4 is
         subscriptionId = _subId;
         dataFeed = AggregatorV3Interface(
             // 0xF0d50568e3A7e8259E16663972b11910F89BD8e7// eth/usd amoy network
-            0x001382149eBa3441043c1c66972b4772963f5D43 // matic/usd amoy network
-            // 0x694AA1769357215DE4FAC081bf1f309aDC325306 // sepolia network
+            // 0x001382149eBa3441043c1c66972b4772963f5D43 // matic/usd amoy network
+            0x694AA1769357215DE4FAC081bf1f309aDC325306 // sepolia network
             // 0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165 // arb-sepolia eth/usd
         );
     }
