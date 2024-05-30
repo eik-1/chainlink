@@ -9,7 +9,7 @@ const hre = require("hardhat");
 async function main() {
 
   const args = [200];
-  const Fsd = await hre.ethers.getContractFactory("SyntheticV4");
+  const Fsd = await hre.ethers.getContractFactory("Synthetic");
   const fsd = await Fsd.deploy(2795);
 
   console.log(
